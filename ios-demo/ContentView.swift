@@ -110,8 +110,8 @@ private struct TodayView: View {
             RingSensingCard()
 
             SectionTitle(title: "AI next actions", action: nil)
-            ActionCard(icon: "figure.walk", title: "Choose a steady session", body: "Your recovery is good. Keep training moderate for 35–45 minutes.", tint: NoorColors.green)
-            ActionCard(icon: "bed.double.fill", title: "Protect tonight's sleep", body: "A regular wind-down could improve your sleep consistency this week.", tint: NoorColors.gold)
+            ActionCard(icon: "figure.walk", title: "Choose a steady session", detail: "Your recovery is good. Keep training moderate for 35–45 minutes.", tint: NoorColors.green)
+            ActionCard(icon: "bed.double.fill", title: "Protect tonight's sleep", detail: "A regular wind-down could improve your sleep consistency this week.", tint: NoorColors.gold)
         }
     }
 }
@@ -167,8 +167,8 @@ private struct MoveView: View {
         VStack(alignment: .leading, spacing: 16) {
             PageIntro(eyebrow: "Move well", title: "Train with care", subtitle: "Guidance lives in the app so your ring can stay quiet and last 7+ days.")
             BigMetric(value: "62", label: "training load", detail: "Moderate · 18 points below your weekly peak", tint: NoorColors.green)
-            ActionCard(icon: "figure.run", title: "Joint care recommendation", body: "Keep impact moderate today. Add a 6-minute warm-up before your main session to reduce knee and ankle load.", tint: NoorColors.rose)
-            ActionCard(icon: "clock.arrow.circlepath", title: "Recovery window", body: "You are ready for a 35–45 minute session. Avoid back-to-back high-intensity days.", tint: NoorColors.blue)
+            ActionCard(icon: "figure.run", title: "Joint care recommendation", detail: "Keep impact moderate today. Add a 6-minute warm-up before your main session to reduce knee and ankle load.", tint: NoorColors.rose)
+            ActionCard(icon: "clock.arrow.circlepath", title: "Recovery window", detail: "You are ready for a 35–45 minute session. Avoid back-to-back high-intensity days.", tint: NoorColors.blue)
             ProgressCard(title: "Weekly activity", completed: 4, total: 5, tint: NoorColors.green)
         }
     }
@@ -182,7 +182,7 @@ private struct QiblaView: View {
             PageIntro(eyebrow: "Local rhythm", title: "Qibla & prayer", subtitle: "A calm, app-side guide designed for everyday worship.")
             CompassCard(isCalibrated: $isCalibrated)
             PrayerTimesCard()
-            InfoCard(icon: "iphone", title: "App-side guidance", body: "The first version keeps the ring screen-free. Your phone handles location and direction while the ring focuses on sensing and subtle reminders.")
+            InfoCard(icon: "iphone", title: "App-side guidance", detail: "The first version keeps the ring screen-free. Your phone handles location and direction while the ring focuses on sensing and subtle reminders.")
         }
     }
 }
@@ -384,7 +384,7 @@ private struct RingSensingCard: View {
 private struct ActionCard: View {
     let icon: String
     let title: String
-    let body: String
+    let detail: String
     let tint: Color
 
     var body: some View {
@@ -395,7 +395,7 @@ private struct ActionCard: View {
                 .frame(width: 28)
             VStack(alignment: .leading, spacing: 5) {
                 Text(title).font(.headline)
-                Text(body)
+                Text(detail)
                     .font(.subheadline)
                     .foregroundStyle(NoorColors.muted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -409,10 +409,10 @@ private struct ActionCard: View {
 private struct InfoCard: View {
     let icon: String
     let title: String
-    let body: String
+    let detail: String
 
     var body: some View {
-        ActionCard(icon: icon, title: title, body: body, tint: NoorColors.gold)
+        ActionCard(icon: icon, title: title, detail: detail, tint: NoorColors.gold)
     }
 }
 
@@ -574,8 +574,8 @@ private struct ProfileSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Omar's profile").font(.title2.bold())
-            InfoCard(icon: "person.fill", title: "Personal baseline", body: "Your scores become more personal as Noor learns your sleep, recovery and activity rhythm.")
-            InfoCard(icon: "lock.shield.fill", title: "Private by design", body: "Health insights are presented as guidance, not diagnosis. Data controls will live here in the production app.")
+            InfoCard(icon: "person.fill", title: "Personal baseline", detail: "Your scores become more personal as Noor learns your sleep, recovery and activity rhythm.")
+            InfoCard(icon: "lock.shield.fill", title: "Private by design", detail: "Health insights are presented as guidance, not diagnosis. Data controls will live here in the production app.")
         }
         .padding(22)
         .background(NoorColors.background)
