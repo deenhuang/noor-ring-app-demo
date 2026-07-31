@@ -1,0 +1,23 @@
+name: NOORRingDemo
+options:
+  bundleIdPrefix: com.noorring
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  NOORRingDemo:
+    type: application
+    platform: iOS
+    sources:
+      - path: .
+        excludes:
+          - project.yml
+          - README.md
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.noorring.demo
+        SWIFT_VERSION: 5.0
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleDarkContent
