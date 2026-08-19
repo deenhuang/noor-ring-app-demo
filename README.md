@@ -6,3 +6,6 @@ GitHub Pages URL, after Pages is enabled:
 
 https://deenhuang.github.io/noor-ring-app-demo/
 
+Prototype PDF:
+
+https://deenhuang.github.io/noor-ring-app-demo/output/pdf/NOOR_Ring_App_Prototype.pdf
