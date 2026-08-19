@@ -1,595 +1,296 @@
 import SwiftUI
 
 private enum AppTab: String, CaseIterable {
-    case today = "Today"
-    case sleep = "Sleep"
-    case move = "Move"
-    case qibla = "Qibla"
-    case coach = "Coach"
-
+    case today = "今天"
+    case core = "健康核心数据"
+    case health = "我的健康"
     var icon: String {
-        switch self {
-        case .today: return "sun.max.fill"
-        case .sleep: return "moon.stars.fill"
-        case .move: return "figure.run"
-        case .qibla: return "location.north.fill"
-        case .coach: return "sparkles"
-        }
+        switch self { case .today: return "sun.max"; case .core: return "leaf"; case .health: return "tree" }
     }
 }
 
 struct ContentView: View {
     @State private var selectedTab: AppTab = .today
     @State private var showProfile = false
+    @State private var showQuickActions = false
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             NoorColors.background.ignoresSafeArea()
-
             VStack(spacing: 0) {
-                Header(showProfile: $showProfile)
-
+                TopBar(showProfile: $showProfile)
                 ScrollView(showsIndicators: false) {
-                    Group {
-                        switch selectedTab {
-                        case .today: TodayView()
-                        case .sleep: SleepView()
-                        case .move: MoveView()
-                        case .qibla: QiblaView()
-                        case .coach: CoachView()
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 24)
+                    Group { switch selectedTab { case .today: TodayView(); case .core: CoreDataView(); case .health: HealthView() } }
+                        .padding(.horizontal, 18).padding(.bottom, 130)
                 }
-
-                TabBar(selectedTab: $selectedTab)
             }
+            HStack(alignment: .bottom, spacing: 12) {
+                FloatingTabBar(selectedTab: $selectedTab)
+                Button { showQuickActions = true } label: {
+                    Image(systemName: "plus").font(.system(size: 26, weight: .light)).foregroundStyle(NoorColors.cream)
+                        .frame(width: 66, height: 66).background(Circle().fill(NoorColors.floating)).overlay(Circle().stroke(NoorColors.line, lineWidth: 1))
+                }.buttonStyle(.plain)
+            }.padding(.horizontal, 18).padding(.bottom, 16)
         }
-        .sheet(isPresented: $showProfile) {
-            ProfileSheet()
-                .presentationDetents([.medium])
-        }
+        .sheet(isPresented: $showProfile) { ProfileSheet() }
+        .sheet(isPresented: $showQuickActions) { QuickActionsSheet() }
+        .preferredColorScheme(.dark)
     }
 }
 
-private struct Header: View {
+private struct TopBar: View {
     @Binding var showProfile: Bool
-
     var body: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Riyadh, Saudi Arabia")
-                    .font(.caption)
-                    .foregroundStyle(NoorColors.muted)
-                Text("Good morning, Omar")
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    .foregroundStyle(NoorColors.ink)
-            }
-
-            Spacer()
-
-            HStack(spacing: 8) {
-                Image(systemName: "circle.lefthalf.filled")
-                    .foregroundStyle(NoorColors.green)
-                Text("8d")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(NoorColors.ink)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(.white.opacity(0.78), in: Capsule())
-
-            Button {
-                showProfile = true
-            } label: {
-                Image(systemName: "person.crop.circle.fill")
-                    .font(.system(size: 27))
-                    .foregroundStyle(NoorColors.deepGreen)
-            }
-            .accessibilityLabel("Open profile")
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 14)
-        .padding(.bottom, 10)
+        HStack {
+            Button {} label: { Image(systemName: "line.3.horizontal").font(.system(size: 25, weight: .light)) }.buttonStyle(.plain)
+            Spacer(); Text("NOOR").font(.system(size: 29, weight: .ultraLight, design: .rounded)).tracking(2); Spacer()
+            HStack(spacing: 18) {
+                Image(systemName: "square.and.arrow.up")
+                Button { showProfile = true } label: { Image(systemName: "person.crop.circle") }.buttonStyle(.plain)
+            }.font(.system(size: 23, weight: .light))
+        }.foregroundStyle(NoorColors.cream).padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 18)
     }
 }
 
 private struct TodayView: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            ScoreHero()
-
-            SectionTitle(title: "Today", action: "See trends")
-
+        VStack(alignment: .leading, spacing: 24) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) { Text("今天").font(.system(size: 32)); Text("周三 · 19 八月").font(.system(size: 14)).foregroundStyle(NoorColors.muted) }
+                Spacer(); Label("利雅得", systemImage: "location.fill").font(.system(size: 13)).foregroundStyle(NoorColors.muted)
+            }
+            MetricsStrip(); ReadinessHero(); SectionTitle(title: "今日洞察", action: "查看全部")
             HStack(spacing: 12) {
-                MetricCard(title: "Sleep", value: "82", suffix: "/100", icon: "moon.stars.fill", tint: NoorColors.blue)
-                MetricCard(title: "Stress", value: "Low", suffix: "", icon: "waveform.path.ecg", tint: NoorColors.rose)
+                InsightCard(title: "压力管理", value: "平稳", detail: "过去 3 小时", icon: "water.waves", colors: NoorColors.tealGradient)
+                InsightCard(title: "心率", value: "68 bpm", detail: "静息趋势正常", icon: "heart", colors: NoorColors.blueGradient)
             }
-
-            RingSensingCard()
-
-            SectionTitle(title: "AI next actions", action: nil)
-            ActionCard(icon: "figure.walk", title: "Choose a steady session", detail: "Your recovery is good. Keep training moderate for 35–45 minutes.", tint: NoorColors.green)
-            ActionCard(icon: "bed.double.fill", title: "Protect tonight's sleep", detail: "A regular wind-down could improve your sleep consistency this week.", tint: NoorColors.gold)
+            TimelineCard(); SectionTitle(title: "为你推荐", action: nil); RecommendationCard()
         }
     }
 }
 
-private struct ScoreHero: View {
+private struct MetricsStrip: View {
     var body: some View {
-        HStack(spacing: 18) {
-            ZStack {
-                Circle()
-                    .stroke(NoorColors.mint, lineWidth: 12)
-                Circle()
-                    .trim(from: 0, to: 0.82)
-                    .stroke(NoorColors.green, style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                VStack(spacing: -2) {
-                    Text("82")
-                        .font(.system(size: 38, weight: .bold, design: .rounded))
-                    Text("ready")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(NoorColors.muted)
-                }
-            }
-            .frame(width: 124, height: 124)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Your body is ready")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(NoorColors.ink)
-                Text("A balanced day is ahead. Keep your movement steady and give yourself an early wind-down.")
-                    .font(.subheadline)
-                    .foregroundStyle(NoorColors.muted)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(18)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-    }
-}
-
-private struct SleepView: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            PageIntro(eyebrow: "Last night", title: "Sleep that restores", subtitle: "Your sleep rhythm is becoming more consistent.")
-            BigMetric(value: "7h 42m", label: "total sleep", detail: "+24 min vs your 14-day average", tint: NoorColors.blue)
-            SleepStagesCard()
-            TrendCard(title: "Resting heart rate", value: "54 bpm", delta: "−3 bpm", points: [0.62, 0.54, 0.58, 0.42, 0.48, 0.37, 0.32], tint: NoorColors.rose)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 14) {
+                ScoreOrb(title: "恢复力", value: "—", icon: "water.waves", tint: .cyan)
+                ScoreOrb(title: "准备度", value: "82", icon: "leaf", tint: .mint)
+                ScoreOrb(title: "睡眠", value: "81", icon: "moon", tint: .teal)
+                ScoreOrb(title: "活动", value: "52", icon: "flame", tint: .orange)
+            }.padding(.vertical, 3)
         }
     }
 }
 
-private struct MoveView: View {
+private struct ScoreOrb: View {
+    let title: String; let value: String; let icon: String; let tint: Color
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            PageIntro(eyebrow: "Move well", title: "Train with care", subtitle: "Guidance lives in the app so your ring can stay quiet and last 7+ days.")
-            BigMetric(value: "62", label: "training load", detail: "Moderate · 18 points below your weekly peak", tint: NoorColors.green)
-            ActionCard(icon: "figure.run", title: "Joint care recommendation", detail: "Keep impact moderate today. Add a 6-minute warm-up before your main session to reduce knee and ankle load.", tint: NoorColors.rose)
-            ActionCard(icon: "clock.arrow.circlepath", title: "Recovery window", detail: "You are ready for a 35–45 minute session. Avoid back-to-back high-intensity days.", tint: NoorColors.blue)
-            ProgressCard(title: "Weekly activity", completed: 4, total: 5, tint: NoorColors.green)
-        }
+        VStack(spacing: 10) {
+            ZStack { Circle().fill(tint.opacity(0.12)); Circle().stroke(tint.opacity(0.28), lineWidth: 1); VStack(spacing: 3) { Image(systemName: icon).font(.system(size: 21, weight: .light)); Text(value).font(.system(size: 25, weight: .light, design: .rounded)) } }
+                .frame(width: 92, height: 92)
+            Text(title).font(.system(size: 15)).foregroundStyle(NoorColors.cream)
+        }.foregroundStyle(tint).frame(width: 98)
     }
 }
 
-private struct QiblaView: View {
-    @State private var isCalibrated = false
-
+private struct ReadinessHero: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            PageIntro(eyebrow: "Local rhythm", title: "Qibla & prayer", subtitle: "A calm, app-side guide designed for everyday worship.")
-            CompassCard(isCalibrated: $isCalibrated)
-            PrayerTimesCard()
-            InfoCard(icon: "iphone", title: "App-side guidance", detail: "The first version keeps the ring screen-free. Your phone handles location and direction while the ring focuses on sensing and subtle reminders.")
-        }
-    }
-}
-
-private struct CoachView: View {
-    @State private var message = ""
-    @State private var messages = ["I’m here to help you make today healthier without making it complicated."]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            PageIntro(eyebrow: "Your health partner", title: "Ask Noor", subtitle: "Simple answers built from your personal baseline.")
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 30).fill(LinearGradient(colors: NoorColors.greenGradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+            WaveLines(color: NoorColors.mint.opacity(0.28)).clipShape(RoundedRectangle(cornerRadius: 30))
             VStack(alignment: .leading, spacing: 12) {
-                ForEach(messages, id: \.self) { item in
-                    Text(item)
-                        .font(.subheadline)
-                        .foregroundStyle(NoorColors.ink)
-                        .padding(14)
-                        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-            .animation(.easeInOut, value: messages)
-
-            HStack(spacing: 10) {
-                TextField("Ask about sleep, training or stress", text: $message)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                Button {
-                    let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !trimmed.isEmpty else { return }
-                    messages.append(trimmed)
-                    messages.append("Based on your recent recovery, keep today moderate and protect your usual bedtime. I’ll keep learning your rhythm as you wear the ring.")
-                    message = ""
-                } label: {
-                    Image(systemName: "arrow.up")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 44, height: 44)
-                        .background(NoorColors.deepGreen, in: Circle())
-                }
-                .accessibilityLabel("Send message")
-            }
-        }
+                HStack { Label("准备度", systemImage: "leaf").font(.system(size: 17, weight: .medium)); Spacer(); Image(systemName: "chevron.right") }.foregroundStyle(NoorColors.cream)
+                Text("82").font(.system(size: 82, weight: .ultraLight, design: .rounded)).foregroundStyle(NoorColors.cream)
+                Text("活动平衡").font(.system(size: 30, weight: .light))
+                Text("你的身体状态良好，今天适合保持稳定的活动节奏。").font(.system(size: 16)).foregroundStyle(NoorColors.cream.opacity(0.86)).fixedSize(horizontal: false, vertical: true)
+                Button("了解更多") {}.font(.system(size: 15, weight: .medium)).foregroundStyle(NoorColors.cream).padding(.horizontal, 18).padding(.vertical, 10).background(Capsule().fill(Color.white.opacity(0.12)))
+            }.padding(24)
+        }.frame(minHeight: 330)
     }
 }
 
-private struct TabBar: View {
-    @Binding var selectedTab: AppTab
-
+private struct InsightCard: View {
+    let title: String; let value: String; let detail: String; let icon: String; let colors: [Color]
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(AppTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) { selectedTab = tab }
-                } label: {
-                    VStack(spacing: 5) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 16, weight: .semibold))
-                        Text(tab.rawValue)
-                            .font(.caption2.weight(.semibold))
-                    }
-                    .foregroundStyle(selectedTab == tab ? NoorColors.deepGreen : NoorColors.muted)
-                    .frame(maxWidth: .infinity)
-                }
-                .accessibilityLabel(tab.rawValue)
+        VStack(alignment: .leading, spacing: 15) {
+            HStack { Image(systemName: icon); Spacer(); Image(systemName: "chevron.right").font(.system(size: 15, weight: .light)) }.foregroundStyle(NoorColors.cream.opacity(0.82))
+            Text(title).font(.system(size: 19, weight: .medium)); Text(value).font(.system(size: 28, weight: .light)).foregroundStyle(NoorColors.cream); Text(detail).font(.system(size: 13)).foregroundStyle(NoorColors.muted)
+        }.padding(18).frame(maxWidth: .infinity, minHeight: 165, alignment: .leading).background(RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)))
+    }
+}
+
+private struct TimelineCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SectionTitle(title: "时间轴", action: "添加")
+            HStack(alignment: .top, spacing: 14) {
+                VStack(spacing: 0) { Circle().fill(NoorColors.mint).frame(width: 12, height: 12); Rectangle().fill(NoorColors.line).frame(width: 1, height: 64) }
+                VStack(alignment: .leading, spacing: 6) { Text("08:18").font(.system(size: 14)).foregroundStyle(NoorColors.muted); Text("醒来").font(.system(size: 20, weight: .medium)); Text("睡眠 6小时56分钟   准备度 82   睡眠 81").font(.system(size: 13)).foregroundStyle(NoorColors.muted) }
+                Spacer(); Image(systemName: "chevron.right").foregroundStyle(NoorColors.muted)
             }
-        }
-        .padding(.top, 10)
-        .padding(.bottom, 8)
-        .background(.white.opacity(0.94))
+        }.padding(20).background(RoundedRectangle(cornerRadius: 24).fill(NoorColors.panel))
     }
 }
 
-private struct PageIntro: View {
-    let eyebrow: String
-    let title: String
-    let subtitle: String
-
+private struct RecommendationCard: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(eyebrow.uppercased())
-                .font(.caption.weight(.bold))
-                .tracking(1.4)
-                .foregroundStyle(NoorColors.gold)
-            Text(title)
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundStyle(NoorColors.ink)
-            Text(subtitle)
-                .font(.subheadline)
-                .foregroundStyle(NoorColors.muted)
-        }
-        .padding(.top, 8)
-    }
-}
-
-private struct SectionTitle: View {
-    let title: String
-    let action: String?
-
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(.headline.weight(.bold))
-                .foregroundStyle(NoorColors.ink)
+        HStack(spacing: 16) {
+            Image(systemName: "figure.walk").font(.system(size: 26, weight: .light)).foregroundStyle(NoorColors.mint).frame(width: 54, height: 54).background(Circle().fill(NoorColors.mint.opacity(0.12)))
+            VStack(alignment: .leading, spacing: 5) { Text("稳步提升").font(.system(size: 18, weight: .medium)); Text("今天进行 20 分钟轻度活动，帮助维持恢复平衡。").font(.system(size: 14)).foregroundStyle(NoorColors.muted) }
             Spacer()
-            if let action {
-                Text(action)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(NoorColors.green)
+        }.padding(18).background(RoundedRectangle(cornerRadius: 22).fill(NoorColors.panel))
+    }
+}
+
+private struct CoreDataView: View {
+    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            PageHeading(title: "健康核心数据", subtitle: "长期趋势会比单日波动更有意义")
+            SectionTitle(title: "准备度", action: "编辑")
+            LazyVGrid(columns: columns, spacing: 12) {
+                DataTile(title: "准备度评分", value: "82", status: "良好", icon: "leaf", tint: .mint)
+                DataTile(title: "症状探测功能", value: "无异常体征", status: "", icon: "waveform.path.ecg", tint: .cyan)
+                DataTile(title: "睡眠分数", value: "81", status: "良好", icon: "moon", tint: .teal)
+                DataTile(title: "生物钟", value: "需要更多数据", status: "约需 90 天", icon: "clock", tint: .orange)
+                DataTile(title: "睡眠规律", value: "稳定", status: "", icon: "chart.xyaxis.line", tint: .mint)
+                DataTile(title: "睡眠负债", value: "无", status: "", icon: "bed.double", tint: .blue)
             }
+            SectionTitle(title: "恢复趋势", action: "过去 30 天"); TrendCard()
         }
     }
 }
 
-private struct MetricCard: View {
-    let title: String
-    let value: String
-    let suffix: String
-    let icon: String
-    let tint: Color
-
+private struct DataTile: View {
+    let title: String; let value: String; let status: String; let icon: String; let tint: Color
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundStyle(tint)
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(NoorColors.muted)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(value)
-                    .font(.system(size: 25, weight: .bold, design: .rounded))
-                Text(suffix)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(NoorColors.muted)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-    }
-}
-
-private struct BigMetric: View {
-    let value: String
-    let label: String
-    let detail: String
-    let tint: Color
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(value)
-                    .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .foregroundStyle(tint)
-                Text(label)
-                    .font(.headline)
-                    .foregroundStyle(NoorColors.ink)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(NoorColors.muted)
-            }
-            Spacer()
-            Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 34, weight: .medium))
-                .foregroundStyle(tint.opacity(0.75))
-        }
-        .padding(18)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-}
-
-private struct RingSensingCard: View {
-    var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle().fill(NoorColors.mint)
-                Image(systemName: "waveform.path.ecg")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(NoorColors.green)
-            }
-            .frame(width: 48, height: 48)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Ring sensing")
-                    .font(.headline)
-                Text("Last synced 6 min ago · signal quality good")
-                    .font(.caption)
-                    .foregroundStyle(NoorColors.muted)
-            }
-            Spacer()
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(NoorColors.green)
-        }
-        .padding(15)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-    }
-}
-
-private struct ActionCard: View {
-    let icon: String
-    let title: String
-    let detail: String
-    let tint: Color
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 13) {
-            Image(systemName: icon)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(tint)
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title).font(.headline)
-                Text(detail)
-                    .font(.subheadline)
-                    .foregroundStyle(NoorColors.muted)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(16)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-    }
-}
-
-private struct InfoCard: View {
-    let icon: String
-    let title: String
-    let detail: String
-
-    var body: some View {
-        ActionCard(icon: icon, title: title, detail: detail, tint: NoorColors.gold)
-    }
-}
-
-private struct SleepStagesCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionTitle(title: "Sleep stages", action: "Details")
-            HStack(alignment: .bottom, spacing: 4) {
-                ForEach([0.36, 0.58, 0.46, 0.72, 0.49, 0.8, 0.62, 0.7, 0.44, 0.6], id: \.self) { height in
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .fill(LinearGradient(colors: [NoorColors.blue, NoorColors.mint], startPoint: .top, endPoint: .bottom))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 92 * height)
-                }
-            }
-            HStack {
-                Legend(color: NoorColors.blue, label: "Deep 1h 28m")
-                Legend(color: NoorColors.mint, label: "Restful 6h 14m")
-            }
-        }
-        .padding(16)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-    }
-}
-
-private struct Legend: View {
-    let color: Color
-    let label: String
-
-    var body: some View {
-        HStack(spacing: 5) {
-            Circle().fill(color).frame(width: 8, height: 8)
-            Text(label).font(.caption).foregroundStyle(NoorColors.muted)
-        }
+            HStack { Text(title).font(.system(size: 16)).foregroundStyle(NoorColors.muted); Spacer(); Image(systemName: "chevron.right").font(.system(size: 13, weight: .light)).foregroundStyle(NoorColors.muted) }
+            Spacer(minLength: 18); Image(systemName: icon).font(.system(size: 25, weight: .light)).foregroundStyle(tint); Text(value).font(.system(size: 25, weight: .light)).foregroundStyle(NoorColors.cream)
+            if !status.isEmpty { Text(status).font(.system(size: 14)).foregroundStyle(tint) }
+        }.padding(18).frame(maxWidth: .infinity, minHeight: 190, alignment: .leading).background(RoundedRectangle(cornerRadius: 24).fill(tint.opacity(0.07))).overlay(RoundedRectangle(cornerRadius: 24).stroke(NoorColors.line.opacity(0.35), lineWidth: 1))
     }
 }
 
 private struct TrendCard: View {
-    let title: String
-    let value: String
-    let delta: String
-    let points: [CGFloat]
-    let tint: Color
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(title).font(.headline)
-                Spacer()
-                Text(delta).font(.caption.weight(.bold)).foregroundStyle(NoorColors.green)
-            }
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(value).font(.title2.bold())
-                Text("last 7 nights").font(.caption).foregroundStyle(NoorColors.muted)
-            }
-            GeometryReader { proxy in
-                Path { path in
-                    for (index, point) in points.enumerated() {
-                        let x = proxy.size.width * CGFloat(index) / CGFloat(points.count - 1)
-                        let y = proxy.size.height * point
-                        if index == 0 { path.move(to: CGPoint(x: x, y: y)) }
-                        else { path.addLine(to: CGPoint(x: x, y: y)) }
-                    }
-                }
-                .stroke(tint, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-            }
-            .frame(height: 62)
-        }
-        .padding(16)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        VStack(alignment: .leading, spacing: 18) {
+            HStack { Text("个人基线").font(.system(size: 18, weight: .medium)); Spacer(); Text("+6%").foregroundStyle(NoorColors.mint) }
+            TrendChart(); Text("你的恢复力正在逐步提升，保持当前睡眠和活动节奏。").font(.system(size: 14)).foregroundStyle(NoorColors.muted)
+        }.padding(20).background(RoundedRectangle(cornerRadius: 24).fill(NoorColors.panel))
     }
 }
 
-private struct ProgressCard: View {
-    let title: String
-    let completed: Int
-    let total: Int
-    let tint: Color
-
+private struct TrendChart: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(title).font(.headline)
-                Spacer()
-                Text("\(completed)/\(total) days").font(.caption.weight(.semibold)).foregroundStyle(NoorColors.muted)
-            }
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(NoorColors.mint)
-                    Capsule().fill(tint).frame(width: proxy.size.width * CGFloat(completed) / CGFloat(total))
-                }
-            }
-            .frame(height: 9)
-        }
-        .padding(16)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        GeometryReader { proxy in
+            Path { path in
+                let points: [CGFloat] = [0.65, 0.52, 0.58, 0.42, 0.48, 0.28, 0.36, 0.22, 0.3, 0.16]
+                path.move(to: CGPoint(x: 0, y: proxy.size.height * points[0]))
+                for (index, value) in points.dropFirst().enumerated() { path.addLine(to: CGPoint(x: proxy.size.width * CGFloat(index + 1) / CGFloat(points.count - 1), y: proxy.size.height * value)) }
+            }.stroke(NoorColors.mint, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+        }.frame(height: 95)
     }
 }
 
-private struct CompassCard: View {
-    @Binding var isCalibrated: Bool
-
+private struct HealthView: View {
     var body: some View {
-        VStack(spacing: 14) {
-            ZStack {
-                Circle().stroke(NoorColors.mint, lineWidth: 18)
-                Circle().stroke(NoorColors.gold.opacity(0.3), lineWidth: 1)
-                VStack(spacing: 3) {
-                    Image(systemName: "location.north.fill")
-                        .font(.system(size: 42, weight: .bold))
-                        .foregroundStyle(NoorColors.gold)
-                    Text("Qibla")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(NoorColors.muted)
-                }
-            }
-            .frame(width: 180, height: 180)
-            Text(isCalibrated ? "Direction calibrated" : "Hold your phone flat to calibrate")
-                .font(.headline)
-            Button {
-                isCalibrated.toggle()
-            } label: {
-                Text(isCalibrated ? "Calibrated" : "Calibrate compass")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(NoorColors.deepGreen, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
+        VStack(alignment: .leading, spacing: 24) {
+            PageHeading(title: "我的健康", subtitle: "用小调整，长期管理你的生活方式"); HealthOverview(); SectionTitle(title: "健康状态", action: nil)
+            HealthStatusCard(title: "睡眠健康", status: "状态良好", detail: "正常睡眠分数：81", icon: "moon", colors: NoorColors.greenGradient)
+            HealthStatusCard(title: "压力管理", status: "正在校准", detail: "建立个人压力基线中", icon: "water.waves", colors: NoorColors.purpleGradient)
+            HealthStatusCard(title: "心脏健康", status: "正在校准", detail: "持续佩戴后将提供更多趋势", icon: "heart", colors: NoorColors.blueGradient)
+            SectionTitle(title: "中东生活方式", action: nil); LifestyleCard()
         }
-        .padding(18)
-        .frame(maxWidth: .infinity)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 
-private struct PrayerTimesCard: View {
+private struct HealthOverview: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Prayer times").font(.headline)
-                Spacer()
-                Text("Riyadh · Today").font(.caption).foregroundStyle(NoorColors.muted)
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 28).fill(LinearGradient(colors: NoorColors.oceanGradient, startPoint: .topLeading, endPoint: .bottomTrailing)); WaveLines(color: Color.white.opacity(0.22)).clipShape(RoundedRectangle(cornerRadius: 28))
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 8) { Text("长期健康趋势").font(.system(size: 17, weight: .medium)); Text("健康是一场马拉松").font(.system(size: 30, weight: .light)); Text("通过小调整来提升睡眠质量、保持恢复平衡和稳定活动量。").font(.system(size: 14)).foregroundStyle(NoorColors.cream.opacity(0.82)) }
+                Spacer(); Image(systemName: "sparkles").font(.system(size: 35, weight: .ultraLight)).foregroundStyle(NoorColors.cream)
+            }.padding(22)
+        }.frame(minHeight: 205)
+    }
+}
+
+private struct HealthStatusCard: View {
+    let title: String; let status: String; let detail: String; let icon: String; let colors: [Color]
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon).font(.system(size: 25, weight: .light)).frame(width: 56, height: 56).background(Circle().fill(Color.white.opacity(0.1)))
+            VStack(alignment: .leading, spacing: 5) { Text(title).font(.system(size: 19, weight: .medium)); Text(status).font(.system(size: 17)).foregroundStyle(NoorColors.mint); Text(detail).font(.system(size: 14)).foregroundStyle(NoorColors.muted) }
+            Spacer(); Image(systemName: "chevron.right").font(.system(size: 18, weight: .light))
+        }.padding(18).foregroundStyle(NoorColors.cream).background(RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)))
+    }
+}
+
+private struct LifestyleCard: View {
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: "location.north.line").font(.system(size: 25, weight: .light)).foregroundStyle(NoorColors.gold).frame(width: 54, height: 54).background(Circle().fill(NoorColors.gold.opacity(0.12)))
+            VStack(alignment: .leading, spacing: 6) { Text("Qibla 与祷告提醒").font(.system(size: 18, weight: .medium)); Text("在 App 中获取方向、礼拜时间和斋月健康建议").font(.system(size: 14)).foregroundStyle(NoorColors.muted) }
+            Spacer(); Image(systemName: "chevron.right").foregroundStyle(NoorColors.muted)
+        }.padding(18).background(RoundedRectangle(cornerRadius: 22).fill(NoorColors.panel))
+    }
+}
+
+private struct FloatingTabBar: View {
+    @Binding var selectedTab: AppTab
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(AppTab.allCases, id: \.self) { tab in
+                Button { withAnimation(.easeInOut(duration: 0.2)) { selectedTab = tab } } label: {
+                    VStack(spacing: 6) { Image(systemName: tab.icon).font(.system(size: 21, weight: .light)); Text(tab.rawValue).font(.system(size: 12)) }
+                        .foregroundStyle(selectedTab == tab ? NoorColors.cream : NoorColors.muted).frame(maxWidth: .infinity)
+                }.buttonStyle(.plain)
             }
-            ForEach([("Fajr", "04:12"), ("Dhuhr", "12:02"), ("Asr", "15:27"), ("Maghrib", "18:48"), ("Isha", "20:18")], id: \.0) { item in
-                HStack {
-                    Text(item.0).font(.subheadline.weight(.semibold))
-                    Spacer()
-                    Text(item.1).font(.subheadline.monospacedDigit()).foregroundStyle(NoorColors.muted)
-                }
-            }
-        }
-        .padding(16)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }.padding(.vertical, 12).frame(maxWidth: .infinity).background(Capsule().fill(NoorColors.floating)).overlay(Capsule().stroke(NoorColors.line, lineWidth: 1))
+    }
+}
+
+private struct PageHeading: View {
+    let title: String; let subtitle: String
+    var body: some View { VStack(alignment: .leading, spacing: 7) { Text(title).font(.system(size: 31, weight: .light)); Text(subtitle).font(.system(size: 15)).foregroundStyle(NoorColors.muted) }.padding(.top, 5) }
+}
+
+private struct SectionTitle: View {
+    let title: String; let action: String?
+    var body: some View { HStack(alignment: .firstTextBaseline) { Text(title).font(.system(size: 24, weight: .light)); Spacer(); if let action { Text(action).font(.system(size: 13)).foregroundStyle(NoorColors.muted) } } }
+}
+
+private struct WaveLines: View {
+    let color: Color
+    var body: some View {
+        GeometryReader { _ in Canvas { context, size in
+            for index in 0..<4 { var path = Path(); let y = size.height * (0.26 + CGFloat(index) * 0.2); path.move(to: CGPoint(x: -20, y: y)); path.addCurve(to: CGPoint(x: size.width + 20, y: y + 18), control1: CGPoint(x: size.width * 0.26, y: y - 55), control2: CGPoint(x: size.width * 0.67, y: y + 55)); context.stroke(path, with: .color(color), lineWidth: 2) }
+        } }.allowsHitTesting(false)
     }
 }
 
 private struct ProfileSheet: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text("Omar's profile").font(.title2.bold())
-            InfoCard(icon: "person.fill", title: "Personal baseline", detail: "Your scores become more personal as Noor learns your sleep, recovery and activity rhythm.")
-            InfoCard(icon: "lock.shield.fill", title: "Private by design", detail: "Health insights are presented as guidance, not diagnosis. Data controls will live here in the production app.")
-        }
-        .padding(22)
-        .background(NoorColors.background)
+        NavigationStack { List { Label("Omar Al-Harbi", systemImage: "person.crop.circle"); Label("已连接 NOOR Ring", systemImage: "circle.hexagongrid.circle"); Label("剩余电量 74% · 约 8 天", systemImage: "battery.75percent"); Label("英语 / العربية", systemImage: "globe") }.navigationTitle("个人资料") }.preferredColorScheme(.dark)
     }
 }
 
+private struct QuickActionsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack { VStack(spacing: 16) { QuickActionRow(icon: "location.north.line", title: "Qibla 方向", detail: "打开手机端方向指引"); QuickActionRow(icon: "sparkles", title: "AI 健康伙伴", detail: "询问今天的恢复与训练建议"); QuickActionRow(icon: "moon.stars", title: "斋月模式", detail: "调整睡眠、饮水和活动节奏"); Spacer() }.padding(20).navigationTitle("快速操作").toolbar { ToolbarItem(placement: .topBarTrailing) { Button("完成") { dismiss() } } } }.preferredColorScheme(.dark)
+    }
+}
+
+private struct QuickActionRow: View {
+    let icon: String; let title: String; let detail: String
+    var body: some View { HStack(spacing: 16) { Image(systemName: icon).font(.system(size: 22, weight: .light)).foregroundStyle(NoorColors.mint).frame(width: 45, height: 45).background(Circle().fill(NoorColors.mint.opacity(0.12))); VStack(alignment: .leading, spacing: 5) { Text(title).font(.system(size: 18, weight: .medium)); Text(detail).font(.system(size: 14)).foregroundStyle(NoorColors.muted) }; Spacer(); Image(systemName: "chevron.right").foregroundStyle(NoorColors.muted) }.padding(16).background(RoundedRectangle(cornerRadius: 20).fill(NoorColors.panel)) }
+}
+
 private enum NoorColors {
-    static let background = Color(red: 0.96, green: 0.96, blue: 0.92)
-    static let ink = Color(red: 0.09, green: 0.13, blue: 0.12)
-    static let muted = Color(red: 0.39, green: 0.44, blue: 0.42)
-    static let deepGreen = Color(red: 0.09, green: 0.24, blue: 0.22)
-    static let green = Color(red: 0.18, green: 0.49, blue: 0.38)
-    static let mint = Color(red: 0.86, green: 0.94, blue: 0.90)
-    static let gold = Color(red: 0.72, green: 0.52, blue: 0.20)
-    static let blue = Color(red: 0.25, green: 0.42, blue: 0.51)
-    static let rose = Color(red: 0.66, green: 0.36, blue: 0.32)
+    static let background = Color(red: 0.055, green: 0.06, blue: 0.07); static let panel = Color(red: 0.115, green: 0.125, blue: 0.14); static let floating = Color(red: 0.16, green: 0.16, blue: 0.18)
+    static let cream = Color(red: 0.94, green: 0.91, blue: 0.88); static let muted = Color(red: 0.62, green: 0.61, blue: 0.62); static let line = Color.white.opacity(0.14); static let mint = Color(red: 0.2, green: 0.82, blue: 0.68); static let gold = Color(red: 0.88, green: 0.68, blue: 0.38)
+    static let greenGradient = [Color(red: 0.04, green: 0.18, blue: 0.17), Color(red: 0.07, green: 0.31, blue: 0.27)]; static let tealGradient = [Color(red: 0.04, green: 0.17, blue: 0.18), Color(red: 0.05, green: 0.35, blue: 0.34)]; static let blueGradient = [Color(red: 0.05, green: 0.12, blue: 0.18), Color(red: 0.08, green: 0.25, blue: 0.38)]; static let purpleGradient = [Color(red: 0.16, green: 0.08, blue: 0.22), Color(red: 0.27, green: 0.12, blue: 0.34)]; static let oceanGradient = [Color(red: 0.08, green: 0.18, blue: 0.24), Color(red: 0.09, green: 0.34, blue: 0.38)]
 }
