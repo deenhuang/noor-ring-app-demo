@@ -1,11 +1,12 @@
 import SwiftUI
 
 private enum AppTab: String, CaseIterable {
-    case today = "今天"
-    case core = "健康核心数据"
+    case today = "首页"
+    case core = "健康"
+    case community = "社区"
     case health = "我的健康"
     var icon: String {
-        switch self { case .today: return "sun.max"; case .core: return "leaf"; case .health: return "tree" }
+        switch self { case .today: return "house"; case .core: return "heart.text.square"; case .community: return "person.3"; case .health: return "tree" }
     }
 }
 
@@ -20,7 +21,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 TopBar(showProfile: $showProfile)
                 ScrollView(showsIndicators: false) {
-                    Group { switch selectedTab { case .today: TodayView(); case .core: CoreDataView(); case .health: HealthView() } }
+                    Group { switch selectedTab { case .today: TodayView(); case .core: CoreDataView(); case .community: CommunityView(); case .health: HealthView() } }
                         .padding(.horizontal, 18).padding(.bottom, 130)
                 }
             }
@@ -59,7 +60,7 @@ private struct TodayView: View {
                 VStack(alignment: .leading, spacing: 4) { Text("今天").font(.system(size: 32)); Text("周三 · 19 八月").font(.system(size: 14)).foregroundStyle(NoorColors.muted) }
                 Spacer(); Label("利雅得", systemImage: "location.fill").font(.system(size: 13)).foregroundStyle(NoorColors.muted)
             }
-            MetricsStrip(); ReadinessHero(); SectionTitle(title: "今日洞察", action: "查看全部")
+            MetricsStrip(); ReadinessHero(); AlarmCard(); QiblaCompassCard(); SectionTitle(title: "今日洞察", action: "查看全部")
             HStack(spacing: 12) {
                 InsightCard(title: "压力管理", value: "平稳", detail: "过去 3 小时", icon: "water.waves", colors: NoorColors.tealGradient)
                 InsightCard(title: "心率", value: "68 bpm", detail: "静息趋势正常", icon: "heart", colors: NoorColors.blueGradient)
@@ -69,14 +70,61 @@ private struct TodayView: View {
     }
 }
 
+private struct AlarmCard: View {
+    var body: some View {
+        VStack(spacing: 18) {
+            HStack {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("智能闹钟").font(.system(size: 18, weight: .medium))
+                    Text("推荐起床时间").font(.system(size: 13)).foregroundStyle(NoorColors.muted)
+                }
+                Spacer()
+                Label("ALARM ON", systemImage: "circle.fill").font(.system(size: 13, weight: .semibold)).foregroundStyle(NoorColors.gold)
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("06:40").font(.system(size: 42, weight: .light, design: .rounded))
+                Text("明天").font(.system(size: 15)).foregroundStyle(NoorColors.muted)
+                Spacer()
+                Image(systemName: "pencil").font(.system(size: 19, weight: .light)).foregroundStyle(NoorColors.gold)
+            }
+            Text("在 06:25–06:40 的轻睡眠窗口内，用戒指的无声震动唤醒你。")
+                .font(.system(size: 14)).foregroundStyle(NoorColors.muted)
+        }
+        .padding(20)
+        .background(RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: NoorColors.goldGradient, startPoint: .topLeading, endPoint: .bottomTrailing)))
+    }
+}
+
+private struct QiblaCompassCard: View {
+    var body: some View {
+        HStack(spacing: 18) {
+            ZStack {
+                Circle().stroke(NoorColors.gold.opacity(0.28), lineWidth: 1)
+                Circle().stroke(NoorColors.gold.opacity(0.65), style: StrokeStyle(lineWidth: 3, dash: [2, 8]))
+                Image(systemName: "location.north.fill").font(.system(size: 26, weight: .light)).foregroundStyle(NoorColors.gold).offset(y: -12)
+                Image(systemName: "building.columns.fill").font(.system(size: 14)).foregroundStyle(NoorColors.cream)
+            }.frame(width: 94, height: 94)
+            VStack(alignment: .leading, spacing: 7) {
+                HStack { Text("Qibla 指南针").font(.system(size: 18, weight: .medium)); Spacer(); Image(systemName: "chevron.right").foregroundStyle(NoorColors.muted) }
+                Text("293° · 西北").font(.system(size: 24, weight: .light, design: .rounded)).foregroundStyle(NoorColors.gold)
+                Text("距离麦加方向约 4°，可以开始校准。").font(.system(size: 13)).foregroundStyle(NoorColors.muted)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: 24).fill(NoorColors.panel))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(NoorColors.gold.opacity(0.25), lineWidth: 1))
+    }
+}
+
 private struct MetricsStrip: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 14) {
-                ScoreOrb(title: "恢复力", value: "—", icon: "water.waves", tint: .cyan)
-                ScoreOrb(title: "准备度", value: "82", icon: "leaf", tint: .mint)
-                ScoreOrb(title: "睡眠", value: "81", icon: "moon", tint: .teal)
-                ScoreOrb(title: "活动", value: "52", icon: "flame", tint: .orange)
+                ScoreOrb(title: "恢复力", value: "—", icon: "water.waves", tint: NoorColors.gold.opacity(0.76))
+                ScoreOrb(title: "准备度", value: "82", icon: "leaf", tint: NoorColors.gold)
+                ScoreOrb(title: "睡眠", value: "81", icon: "moon", tint: NoorColors.cream.opacity(0.86))
+                ScoreOrb(title: "活动", value: "52", icon: "flame", tint: NoorColors.mint)
             }.padding(.vertical, 3)
         }
     }
@@ -193,6 +241,58 @@ private struct TrendChart: View {
     }
 }
 
+private struct CommunityView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            PageHeading(title: "社区", subtitle: "和拥有相似目标的人一起坚持")
+            HStack(spacing: 12) {
+                CommunityPromo(icon: "person.3.fill", title: "创建家庭计划", detail: "与 2–6 位成员共享健康目标", colors: NoorColors.goldGradient)
+                CommunityPromo(icon: "person.crop.circle.badge.plus", title: "邀请朋友", detail: "一起完成 7 天睡眠挑战", colors: NoorColors.copperGradient)
+            }
+            SectionTitle(title: "我的小组", action: "查看全部")
+            CommunityRow(icon: "moon.stars", title: "Ramadan Sleep Circle", detail: "24 位成员 · 连续 6 天", value: "78%")
+            CommunityRow(icon: "figure.walk", title: "Riyadh Morning Walk", detail: "今天 06:30 · 轻度活动", value: "12 人")
+            SectionTitle(title: "推荐社区", action: "全部")
+            HStack(spacing: 12) {
+                CommunityTile(title: "Saudi Wellness", members: "4,527 位成员", icon: "sun.max.fill")
+                CommunityTile(title: "Men 30–40", members: "23,622 位成员", icon: "person.2.fill")
+            }
+        }
+    }
+}
+
+private struct CommunityPromo: View {
+    let icon: String; let title: String; let detail: String; let colors: [Color]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Image(systemName: icon).font(.system(size: 23, weight: .light)).foregroundStyle(NoorColors.ink)
+            Text(title).font(.system(size: 16, weight: .bold)).foregroundStyle(NoorColors.ink)
+            Text(detail).font(.system(size: 12)).foregroundStyle(NoorColors.ink.opacity(0.72))
+        }.padding(16).frame(maxWidth: .infinity, minHeight: 150, alignment: .leading).background(RoundedRectangle(cornerRadius: 22).fill(LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)))
+    }
+}
+
+private struct CommunityRow: View {
+    let icon: String; let title: String; let detail: String; let value: String
+    var body: some View {
+        HStack(spacing: 15) {
+            Image(systemName: icon).font(.system(size: 21, weight: .light)).foregroundStyle(NoorColors.gold).frame(width: 48, height: 48).background(Circle().fill(NoorColors.gold.opacity(0.12)))
+            VStack(alignment: .leading, spacing: 5) { Text(title).font(.system(size: 17, weight: .medium)); Text(detail).font(.system(size: 13)).foregroundStyle(NoorColors.muted) }
+            Spacer(); Text(value).font(.system(size: 16, weight: .medium)).foregroundStyle(NoorColors.gold); Image(systemName: "chevron.right").foregroundStyle(NoorColors.muted)
+        }.padding(17).background(RoundedRectangle(cornerRadius: 22).fill(NoorColors.panel))
+    }
+}
+
+private struct CommunityTile: View {
+    let title: String; let members: String; let icon: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Image(systemName: icon).font(.system(size: 26, weight: .light)).foregroundStyle(NoorColors.gold)
+            Spacer(); Text(title).font(.system(size: 18, weight: .medium)); Text(members).font(.system(size: 13)).foregroundStyle(NoorColors.muted)
+        }.padding(18).frame(maxWidth: .infinity, minHeight: 155, alignment: .leading).background(RoundedRectangle(cornerRadius: 22).fill(NoorColors.panel)).overlay(RoundedRectangle(cornerRadius: 22).stroke(NoorColors.gold.opacity(0.18), lineWidth: 1))
+    }
+}
+
 private struct HealthView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -291,6 +391,6 @@ private struct QuickActionRow: View {
 
 private enum NoorColors {
     static let background = Color(red: 0.055, green: 0.06, blue: 0.07); static let panel = Color(red: 0.115, green: 0.125, blue: 0.14); static let floating = Color(red: 0.16, green: 0.16, blue: 0.18)
-    static let cream = Color(red: 0.94, green: 0.91, blue: 0.88); static let muted = Color(red: 0.62, green: 0.61, blue: 0.62); static let line = Color.white.opacity(0.14); static let mint = Color(red: 0.2, green: 0.82, blue: 0.68); static let gold = Color(red: 0.88, green: 0.68, blue: 0.38)
-    static let greenGradient = [Color(red: 0.04, green: 0.18, blue: 0.17), Color(red: 0.07, green: 0.31, blue: 0.27)]; static let tealGradient = [Color(red: 0.04, green: 0.17, blue: 0.18), Color(red: 0.05, green: 0.35, blue: 0.34)]; static let blueGradient = [Color(red: 0.05, green: 0.12, blue: 0.18), Color(red: 0.08, green: 0.25, blue: 0.38)]; static let purpleGradient = [Color(red: 0.16, green: 0.08, blue: 0.22), Color(red: 0.27, green: 0.12, blue: 0.34)]; static let oceanGradient = [Color(red: 0.08, green: 0.18, blue: 0.24), Color(red: 0.09, green: 0.34, blue: 0.38)]
+    static let cream = Color(red: 0.98, green: 0.93, blue: 0.82); static let ink = Color(red: 0.10, green: 0.08, blue: 0.05); static let muted = Color(red: 0.64, green: 0.61, blue: 0.56); static let line = Color.white.opacity(0.14); static let mint = Color(red: 0.92, green: 0.68, blue: 0.26); static let gold = Color(red: 0.96, green: 0.70, blue: 0.25)
+    static let greenGradient = [Color(red: 0.17, green: 0.13, blue: 0.07), Color(red: 0.40, green: 0.27, blue: 0.10)]; static let tealGradient = [Color(red: 0.14, green: 0.12, blue: 0.07), Color(red: 0.37, green: 0.25, blue: 0.09)]; static let blueGradient = [Color(red: 0.11, green: 0.12, blue: 0.12), Color(red: 0.31, green: 0.23, blue: 0.12)]; static let purpleGradient = [Color(red: 0.17, green: 0.10, blue: 0.11), Color(red: 0.39, green: 0.22, blue: 0.11)]; static let oceanGradient = [Color(red: 0.13, green: 0.14, blue: 0.12), Color(red: 0.40, green: 0.29, blue: 0.12)]; static let goldGradient = [Color(red: 0.24, green: 0.18, blue: 0.09), Color(red: 0.48, green: 0.31, blue: 0.11)]; static let copperGradient = [Color(red: 0.26, green: 0.15, blue: 0.09), Color(red: 0.44, green: 0.22, blue: 0.10)]
 }
