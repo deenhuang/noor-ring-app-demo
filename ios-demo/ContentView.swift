@@ -12,14 +12,14 @@ private enum AppTab: String, CaseIterable {
 
 struct ContentView: View {
     @State private var selectedTab: AppTab = .today
-    @State private var showProfile = false
+    @State private var showDeviceStatus = false
     @State private var showQuickActions = false
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             NoorColors.background.ignoresSafeArea()
             VStack(spacing: 0) {
-                TopBar(showProfile: $showProfile)
+                TopBar(showDeviceStatus: $showDeviceStatus)
                 ScrollView(showsIndicators: false) {
                     Group { switch selectedTab { case .today: TodayView(); case .core: CoreDataView(); case .community: CommunityView(); case .health: HealthView() } }
                         .padding(.horizontal, 18).padding(.bottom, 130)
@@ -33,22 +33,27 @@ struct ContentView: View {
                 }.buttonStyle(.plain)
             }.padding(.horizontal, 18).padding(.bottom, 16)
         }
-        .sheet(isPresented: $showProfile) { ProfileSheet() }
+        .sheet(isPresented: $showDeviceStatus) { DeviceStatusSheet() }
         .sheet(isPresented: $showQuickActions) { QuickActionsSheet() }
         .preferredColorScheme(.dark)
     }
 }
 
 private struct TopBar: View {
-    @Binding var showProfile: Bool
+    @Binding var showDeviceStatus: Bool
     var body: some View {
         HStack {
             Button {} label: { Image(systemName: "line.3.horizontal").font(.system(size: 25, weight: .light)) }.buttonStyle(.plain)
             Spacer(); Text("NOOR").font(.system(size: 29, weight: .ultraLight, design: .rounded)).tracking(2); Spacer()
-            HStack(spacing: 18) {
-                Image(systemName: "square.and.arrow.up")
-                Button { showProfile = true } label: { Image(systemName: "person.crop.circle") }.buttonStyle(.plain)
-            }.font(.system(size: 23, weight: .light))
+            Button { showDeviceStatus = true } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "bolt.fill").font(.system(size: 12, weight: .bold))
+                    Text("74%").font(.system(size: 13, weight: .semibold, design: .rounded))
+                }
+                .padding(.horizontal, 9).padding(.vertical, 6)
+                .foregroundStyle(NoorColors.cream)
+                .background(Capsule().fill(NoorColors.batteryGreen))
+            }.buttonStyle(.plain)
         }.foregroundStyle(NoorColors.cream).padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 18)
     }
 }
@@ -371,9 +376,14 @@ private struct WaveLines: View {
     }
 }
 
-private struct ProfileSheet: View {
+private struct DeviceStatusSheet: View {
     var body: some View {
-        NavigationStack { List { Label("Omar Al-Harbi", systemImage: "person.crop.circle"); Label("已连接 NOOR Ring", systemImage: "circle.hexagongrid.circle"); Label("剩余电量 74% · 约 8 天", systemImage: "battery.75percent"); Label("英语 / العربية", systemImage: "globe") }.navigationTitle("个人资料") }.preferredColorScheme(.dark)
+        NavigationStack { List {
+            Label("已连接 NOOR Ring", systemImage: "circle.hexagongrid.circle")
+            Label("剩余电量 74% · 约 8 天", systemImage: "battery.75percent")
+            Label("建议今晚充电", systemImage: "bolt.fill")
+            Label("英语 / العربية", systemImage: "globe")
+        }.navigationTitle("戒指状态") }.preferredColorScheme(.dark)
     }
 }
 
@@ -391,6 +401,6 @@ private struct QuickActionRow: View {
 
 private enum NoorColors {
     static let background = Color(red: 0.055, green: 0.06, blue: 0.07); static let panel = Color(red: 0.115, green: 0.125, blue: 0.14); static let floating = Color(red: 0.16, green: 0.16, blue: 0.18)
-    static let cream = Color(red: 0.98, green: 0.93, blue: 0.82); static let ink = Color(red: 0.10, green: 0.08, blue: 0.05); static let muted = Color(red: 0.64, green: 0.61, blue: 0.56); static let line = Color.white.opacity(0.14); static let mint = Color(red: 0.92, green: 0.68, blue: 0.26); static let gold = Color(red: 0.96, green: 0.70, blue: 0.25)
+    static let cream = Color(red: 0.98, green: 0.93, blue: 0.82); static let ink = Color(red: 0.10, green: 0.08, blue: 0.05); static let muted = Color(red: 0.64, green: 0.61, blue: 0.56); static let line = Color.white.opacity(0.14); static let mint = Color(red: 0.92, green: 0.68, blue: 0.26); static let gold = Color(red: 0.96, green: 0.70, blue: 0.25); static let batteryGreen = Color(red: 0.10, green: 0.64, blue: 0.30)
     static let greenGradient = [Color(red: 0.17, green: 0.13, blue: 0.07), Color(red: 0.40, green: 0.27, blue: 0.10)]; static let tealGradient = [Color(red: 0.14, green: 0.12, blue: 0.07), Color(red: 0.37, green: 0.25, blue: 0.09)]; static let blueGradient = [Color(red: 0.11, green: 0.12, blue: 0.12), Color(red: 0.31, green: 0.23, blue: 0.12)]; static let purpleGradient = [Color(red: 0.17, green: 0.10, blue: 0.11), Color(red: 0.39, green: 0.22, blue: 0.11)]; static let oceanGradient = [Color(red: 0.13, green: 0.14, blue: 0.12), Color(red: 0.40, green: 0.29, blue: 0.12)]; static let goldGradient = [Color(red: 0.24, green: 0.18, blue: 0.09), Color(red: 0.48, green: 0.31, blue: 0.11)]; static let copperGradient = [Color(red: 0.26, green: 0.15, blue: 0.09), Color(red: 0.44, green: 0.22, blue: 0.10)]
 }
