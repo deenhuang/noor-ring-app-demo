@@ -20,7 +20,9 @@ npm run build
 
 - Product gallery, four finishes, size guide, quantity and sizing-kit selection.
 - Chinese/English switching, with a browser-local language preference.
-- USD pricing: $349 retail, $199 early bird with a $30 reservation deposit.
+- English pricing: $349 retail, $199 early bird with a $30 reservation deposit.
+- Chinese pricing: CNY 2,399 retail, CNY 1,399 early bird with a CNY 199 deposit.
+- Chinese product-film entry points play the supplied Chinese video; English product-film entry points retain the English video.
 - Larger typography inspired by Cybopal: 18px desktop body and 48-56px section/product headings.
 - Reservation form validation and local-only completion state.
 - Original product video assets transcoded to H.264 for browser compatibility.

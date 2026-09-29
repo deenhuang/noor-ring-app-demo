@@ -1,6 +1,7 @@
-// Confirmed USD offer. Other currency proposals and launch tiers are retired.
+// Confirmed regional offers, not a live currency conversion.
 export const prices = {
   USD: { deposit: 30, launch: 199, retail: 349 },
+  CNY: { deposit: 199, launch: 1399, retail: 2399 },
 };
 export const formatPrice = (currency, amount) => currency === 'SAR'
   ? `SAR ${amount.toLocaleString('en-US')}`
