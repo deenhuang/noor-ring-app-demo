@@ -13,5 +13,8 @@ test('Chinese and English have the same complete content structure', () => {
 });
 test('the English product film points to the user-specified video', () => {
   assert.equal(content.en.productVideo,'video2');
-  assert.equal(content.zh.productVideo,'video2');
+});
+test('the Chinese product film uses the Chinese video without changing English', () => {
+  assert.equal(content.zh.productVideo,'video1');
+  assert.notEqual(content.zh.productVideo,content.en.productVideo);
 });

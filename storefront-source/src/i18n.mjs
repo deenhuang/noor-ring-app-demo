@@ -37,6 +37,6 @@ const zh = {
 };
 export const content = {
   en: { ...Object.fromEntries(Object.keys(zh).map(k => [k,k])), productVideo: 'video2' },
-  zh: { ...zh, productVideo: 'video2' },
+  zh: { ...zh, productVideo: 'video1' },
 };
 export const translate = (language, key) => content[language]?.[key] ?? key;
